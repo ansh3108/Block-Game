@@ -212,4 +212,77 @@ class Game {
     onAction() {
         switch (this.state)
 
-        
+        {
+            case this.STATES.READY:
+                this.startGame();
+                break;
+            case this.STATES.PLAYING:
+                this.placeBlock();
+                break;
+            case this.STATES.ENDED:
+                this.restartGame();
+                break;
+        }
+    }
+
+    startGame() {
+        this.updateState(this.STATES.PLAYING);
+        this.blocks = [];
+        this.scoreContainer.innerHTML = '0';
+        this.addBlock();
+    }
+
+    placeBlock() {
+        let currentBlock = this.blocks[this.blocks.length - 1];
+        let newBlocks = currentBlock.place();
+        if (newBlocks.placed) this.placedBlocks.add(newBlocks.placed);
+        if (newBlocks.chopped) {
+            this.choppedBlocks.add(newBlocks.chopped);
+            this.addBlock();
+            this.scoreContainer.innerHTML = String(this.blocks.length - 1);
+        } else {
+            this.endGame();
+        }
+    }
+
+    addBlock() {
+        let newBlock = new Block(this.blocks[this.blocks.length - 1]);
+        this.newBlocks.add(newBlock.mesh);
+        this.blocks.push(newBlock);
+        this.stage.setCamera(this.blocks.length * 2);
+    }
+
+    endGame() {
+        this.updateState(this.STATES.ENDED);
+    }
+
+    restartGame() {
+        this.updateState(this.STATES.RESETTING);
+
+        let oldBlocks = this.placedBlocks.children;
+        for (let i = oldBlocks.length - 1; i >= 0; i--) {
+            this.placedBlocks.remove(oldBlocks[i]);
+        }
+
+        let oldChopped = this.choppedBlocks.children;
+        for (let i = oldChopped.length - 1; i >= 0; i--) {
+            this.choppedBlocks.remove(oldChopped[i]);
+        }
+
+        this.blocks = [];
+        this.scoreContainer.innerHTML = '0';
+
+        this.addBlock();
+        this.updateState(this.STATES.READY);
+    }
+
+    tick() {
+        this.blocks[this.blocks.length - 1].tick();
+        this.stage.render();
+        requestAnimationFrame(() => this.tick());
+    }
+}
+
+window.onload = () => {
+    new Game();
+};
