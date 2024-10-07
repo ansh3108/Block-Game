@@ -1,4 +1,3 @@
-
 "use strict";
 console.clear();
 class Stage {
